@@ -1,0 +1,32 @@
+# Lancer toute l'application :  docker compose up --build
+# Puis (une seule fois) charger les données de démonstration :
+#   docker compose exec backend node seed.js
+# Boutique : http://localhost:8080
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on: [mongo]
+    environment:
+      MONGO_URI: mongodb://mongo:27017/ecommerce
+      JWT_SECRET: ${JWT_SECRET:?Définissez JWT_SECRET (voir .env.docker.example)}
+      CLIENT_URL: http://localhost:8080
+    volumes:
+      - uploads-data:/data/uploads
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "8080:80"
+
+volumes:
+  mongo-data:
+  uploads-data:
